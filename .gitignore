@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Next.js build output
+frontend/.next/
+frontend/out/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+frontend/build_error.log
+
+# YOLO model weights (large files)
+*.pt
+*.onnx
+runs/
+
+# Package lock (optional, remove if you want to track it)
+# package-lock.json
+
+# Gemini agent artifacts
+.gemini/
