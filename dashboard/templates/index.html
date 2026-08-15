@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weed Robot — Live Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Reset & Variables ─────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #0a0f1e;
+      --bg2:       #111827;
+      --bg3:       #1a2236;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #22c55e;
+      --accent2:   #4ade80;
+      --danger:    #ef4444;
+      --warn:      #f59e0b;
+      --pest:      #f97316;
+      --rat:       #ef4444;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --radius:    12px;
+      --glow:      0 0 24px rgba(34,197,94,0.25);
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+
+    /* ── Layout ─────────────────────────────────── */
+    .layout {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      grid-template-columns: 1fr 320px;
+      height: 100vh;
+      gap: 0;
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    header {
+      grid-column: 1 / -1;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), #16a34a);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: -0.3px; }
+    header .subtitle { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .restart-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35);
+      color: #f87171; border-radius: 8px; padding: 6px 14px;
+      font-size: 0.76rem; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: background 0.2s;
+    }
+    .restart-btn:hover { background: rgba(239,68,68,0.22); }
+    .restart-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .restart-info-wrap { position: relative; display: inline-flex; align-items: center; }
+    .restart-info-wrap .tooltip { right: 0; bottom: calc(100% + 8px); width: 210px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+           box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    #sim-badge { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.3); color: var(--warn); display: none; }
+    #sim-badge .dot { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+
+    /* ── Video Panel ─────────────────────────────── */
+    .video-panel {
+      background: #05080f;
+      position: relative;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .video-panel img {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain;
+      border: none;
+    }
+    .video-label {
+      position: absolute; top: 16px; left: 16px;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 4px 10px; font-size: 0.72rem;
+      color: var(--accent); font-family: 'JetBrains Mono', monospace;
+    }
+    .video-corner {
+      position: absolute; bottom: 16px; right: 16px;
+      font-size: 0.7rem; color: var(--muted); font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Stats Sidebar ───────────────────────────── */
+    .sidebar {
+      background: var(--bg2);
+      border-left: 1px solid var(--border);
+      padding: 20px 18px;
+      overflow-y: auto;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .section-title {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--muted); margin-bottom: 4px;
+    }
+
+    /* ── Stat Cards ──────────────────────────────── */
+    .stat-card {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+      transition: border-color 0.3s;
+    }
+    .stat-card.highlight { border-color: rgba(34,197,94,0.4); box-shadow: var(--glow); }
+    .stat-card.danger-card { border-color: rgba(239,68,68,0.4); box-shadow: 0 0 24px rgba(239,68,68,0.2); }
+    .stat-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .stat-icon.green  { background: rgba(34,197,94,0.12); }
+    .stat-icon.red    { background: rgba(239,68,68,0.12); }
+    .stat-icon.amber  { background: rgba(245,158,11,0.12); }
+    .stat-icon.blue   { background: rgba(96,165,250,0.12); }
+    .stat-icon.orange { background: rgba(249,115,22,0.12); }
+    .stat-card.pest-card { border-color: rgba(249,115,22,0.4); box-shadow: 0 0 24px rgba(249,115,22,0.2); }
+    .stat-icon.rat   { background: rgba(239,68,68,0.12); }
+    .stat-card.rat-card { border-color: rgba(239,68,68,0.4); box-shadow: 0 0 24px rgba(239,68,68,0.2); }
+    .stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1; font-family: 'JetBrains Mono', monospace; }
+    .stat-label { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── Arm Status ──────────────────────────────── */
+    .arm-status {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+    }
+    .arm-bar-wrap { background: var(--bg); border-radius: 6px; height: 8px; margin-top: 10px; overflow: hidden; }
+    .arm-bar { height: 100%; width: 0%; border-radius: 6px;
+               background: linear-gradient(90deg, var(--accent), var(--accent2));
+               transition: width 0.3s; }
+    .arm-label-row { display: flex; justify-content: space-between; margin-top: 6px;
+                     font-size: 0.7rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+    #arm-state { font-weight: 600; }
+    #arm-state.ready  { color: var(--accent); }
+    #arm-state.strike { color: var(--danger); animation: pulse 0.5s infinite; }
+    #arm-state.cool   { color: var(--warn); }
+
+    /* ── Strike Log ──────────────────────────────── */
+    .log-container {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 14px;
+      flex: 1; min-height: 140px;
+    }
+    #strike-log {
+      list-style: none; max-height: 200px; overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    }
+    #strike-log li {
+      padding: 4px 0; border-bottom: 1px solid var(--border); color: var(--accent2);
+      animation: fadeIn 0.4s ease;
+    }
+    #strike-log li.empty { color: var(--muted); }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+    #strike-log::-webkit-scrollbar { width: 4px; }
+    #strike-log::-webkit-scrollbar-thumb { background: var(--bg); border-radius: 4px; }
+
+    /* ── Uptime ──────────────────────────────────── */
+    .uptime-bar {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 16px;
+      text-align: center;
+    }
+    #uptime-display { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 600; color: var(--accent); }
+    .uptime-sub { font-size: 0.68rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── Controls Panel ──────────────────────────── */
+    .control-panel {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .control-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ctrl-btn {
+      flex: 1; padding: 8px 12px; border: none; border-radius: 8px;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      font-family: 'Inter', sans-serif;
+    }
+    .ctrl-btn:active { transform: scale(0.97); }
+    .ctrl-btn.running {
+      background: rgba(34,197,94,0.18); color: var(--accent);
+      border: 1px solid rgba(34,197,94,0.4);
+    }
+    .ctrl-btn.paused {
+      background: rgba(245,158,11,0.18); color: var(--warn);
+      border: 1px solid rgba(245,158,11,0.4);
+    }
+    .ctrl-btn.enabled-weed {
+      background: rgba(34,197,94,0.15); color: var(--accent);
+      border: 1px solid rgba(34,197,94,0.4);
+    }
+    .ctrl-btn.disabled-det {
+      background: rgba(100,116,139,0.15); color: var(--muted);
+      border: 1px solid rgba(100,116,139,0.3);
+    }
+    .ctrl-btn.enabled-pest {
+      background: rgba(249,115,22,0.15); color: var(--pest);
+      border: 1px solid rgba(249,115,22,0.4);
+    }
+    .ctrl-btn.enabled-rat {
+      background: rgba(239,68,68,0.15); color: var(--rat);
+      border: 1px solid rgba(239,68,68,0.4);
+    }
+    .delay-row { display: flex; flex-direction: column; gap: 6px; }
+    .delay-label-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.75rem; color: var(--muted);
+    }
+    #delay-value {
+      font-family: 'JetBrains Mono', monospace; color: var(--accent2);
+    }
+    input[type=range].delay-slider {
+      -webkit-appearance: none; width: 100%; height: 5px;
+      border-radius: 3px; background: var(--bg);
+      outline: none; cursor: pointer;
+    }
+    input[type=range].delay-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 16px; height: 16px;
+      border-radius: 50%; background: var(--accent); cursor: pointer;
+      box-shadow: 0 0 6px rgba(34,197,94,0.5);
+    }
+
+    /* ── Servo Status Badge ──────────────────────── */
+    .servo-status-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.78rem; margin-top: 4px;
+    }
+    .servo-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px; font-size: 0.72rem;
+      font-family: 'JetBrains Mono', monospace; font-weight: 600;
+    }
+    .servo-badge.ready      { background: rgba(34,197,94,0.15);  color: var(--accent); border: 1px solid rgba(34,197,94,0.4); }
+    .servo-badge.striking   { background: rgba(239,68,68,0.2);   color: #ff4444;       border: 1px solid rgba(239,68,68,0.5);
+                              animation: pulse 0.5s infinite; }
+    .servo-badge.disengaged { background: rgba(100,116,139,0.15); color: var(--muted); border: 1px solid rgba(100,116,139,0.3); }
+    .ctrl-btn.disengage {
+      background: rgba(239,68,68,0.15); color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.4);
+    }
+    .ctrl-btn.engage {
+      background: rgba(34,197,94,0.15); color: var(--accent);
+      border: 1px solid rgba(34,197,94,0.4);
+    }
+    .ctrl-btn.test-servo {
+      background: rgba(96,165,250,0.15); color: #60a5fa;
+      border: 1px solid rgba(96,165,250,0.4);
+    }
+    .ctrl-btn.test-servo:disabled {
+      opacity: 0.5; cursor: not-allowed;
+    }
+
+    /* ── Info Tooltip ────────────────────────────── */
+    .info-wrap { position: relative; display: inline-flex; align-items: center; }
+    .info-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(100,116,139,0.25); color: var(--muted);
+      font-size: 0.65rem; font-weight: 700; cursor: default;
+      border: 1px solid rgba(100,116,139,0.3); flex-shrink: 0;
+      user-select: none;
+    }
+    .info-icon:hover { background: rgba(34,197,94,0.18); color: var(--accent2); border-color: rgba(34,197,94,0.4); }
+    .tooltip {
+      display: none; position: absolute; bottom: calc(100% + 6px); right: 0;
+      background: #1e2d40; border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 8px; padding: 8px 10px;
+      font-size: 0.7rem; color: var(--text); line-height: 1.4;
+      width: 200px; z-index: 100; pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+    .info-wrap:hover .tooltip { display: block; }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">🌿</div>
+    <div>
+      <h1>Weed Detection Robot</h1>
+      <div class="subtitle">Live Monitoring Dashboard</div>
+    </div>
+    <div class="header-right">
+      <span id="sim-badge" class="badge"><span class="dot"></span> SIM MODE</span>
+      <span class="badge"><span class="dot"></span> LIVE</span>
+      <div class="restart-info-wrap">
+        <button id="btn-restart" class="restart-btn" onclick="systemRestart()">
+          ↺ Restart
+        </button>
+        <div class="info-wrap" style="margin-left:6px;">
+          <span class="info-icon">i</span>
+          <div class="tooltip">Restarts the entire robot service (camera, detection, servo). The dashboard will automatically reload once the system is back online. Takes about 15–20 seconds.</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Video Feed -->
+  <div class="video-panel">
+    <div class="video-label" id="feed-label">📡 LIVE FEED — 640×480</div>
+    <img id="video-stream" src="/video_feed" alt="Camera Feed"/>
+    <div class="video-corner" id="video-corner">fps: —</div>
+  </div>
+
+  <!-- Sidebar Stats -->
+  <div class="sidebar">
+
+    <!-- Controls -->
+    <div class="section-title">Controls</div>
+    <div class="control-panel">
+
+      <!-- Detection toggle -->
+      <div class="control-row">
+        <button id="btn-detection" class="ctrl-btn running" onclick="toggleDetection()">
+          ⏸ Pause Detection
+        </button>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">Pause or resume AI weed/pest/rat detection. When paused the camera feed still runs but no detections or strikes are processed.</div>
+        </div>
+      </div>
+
+      <!-- Capture toggle -->
+      <div class="control-row">
+        <button id="btn-capture" class="ctrl-btn running" onclick="toggleCapture()">
+          ⏸ Pause Video
+        </button>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">Pause or resume the live video feed sent to this dashboard. Detection continues in the background; the last frame stays frozen on screen.</div>
+        </div>
+      </div>
+
+      <!-- Frame delay slider -->
+      <div class="delay-row">
+        <div class="delay-label-row">
+          <span>Detection Interval</span>
+          <div class="info-wrap">
+            <span class="info-icon">i</span>
+            <div class="tooltip">Set the minimum time between detection frames. At 0 s every camera frame is analysed. Higher values reduce CPU load — e.g. 1 s analyses one frame per second.</div>
+          </div>
+        </div>
+        <input type="range" id="delay-slider" class="delay-slider"
+               min="0" max="10" step="0.5" value="0"
+               oninput="onDelayInput(this.value)" onchange="applyDelay(this.value)"/>
+        <div class="delay-label-row" style="margin-top:2px;">
+          <span style="font-size:0.68rem; color:var(--muted);">0 s (every frame)</span>
+          <span id="delay-value">0.0 s</span>
+          <span style="font-size:0.68rem; color:var(--muted);">10 s</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Uptime -->
+    <div class="uptime-bar">
+      <div id="uptime-display">00:00:00</div>
+      <div class="uptime-sub">System Uptime</div>
+    </div>
+
+    <div class="section-title">Detection Stats</div>
+
+    <div class="stat-card highlight" id="card-detections">
+      <div class="stat-icon green">🌿</div>
+      <div>
+        <div class="stat-value" id="stat-detections">0</div>
+        <div class="stat-label">Total Weeds Detected</div>
+      </div>
+    </div>
+
+    <div class="stat-card" id="card-in-zone">
+      <div class="stat-icon amber">🎯</div>
+      <div>
+        <div class="stat-value" id="stat-in-zone">0</div>
+        <div class="stat-label">Weeds Entered Strike Zone</div>
+      </div>
+    </div>
+
+    <div class="stat-card" id="card-strikes">
+      <div class="stat-icon red">⚡</div>
+      <div>
+        <div class="stat-value" id="stat-strikes">0</div>
+        <div class="stat-label">Total Arm Strikes</div>
+      </div>
+    </div>
+
+    <div class="section-title">Pest Detection</div>
+
+    <div class="stat-card" id="card-pests">
+      <div class="stat-icon orange">🐛</div>
+      <div>
+        <div class="stat-value" id="stat-pests">0</div>
+        <div class="stat-label">Total Pests Detected</div>
+      </div>
+    </div>
+
+    <div class="stat-card" id="card-last-pest">
+      <div class="stat-icon orange">⚠️</div>
+      <div>
+        <div class="stat-value" style="font-size:1rem;" id="stat-last-pest">Never</div>
+        <div class="stat-label">Last Pest Alert</div>
+      </div>
+    </div>
+
+    <div class="section-title">Rat Detection</div>
+
+    <div class="stat-card" id="card-rats">
+      <div class="stat-icon rat">🐀</div>
+      <div>
+        <div class="stat-value" id="stat-rats">0</div>
+        <div class="stat-label">Total Rats Detected</div>
+      </div>
+    </div>
+
+    <div class="stat-card" id="card-last-rat">
+      <div class="stat-icon rat">⚠️</div>
+      <div>
+        <div class="stat-value" style="font-size:1rem;" id="stat-last-rat">Never</div>
+        <div class="stat-label">Last Rat Alert</div>
+      </div>
+    </div>
+
+    <div class="section-title">Arm Status</div>
+
+    <div class="arm-status">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.82rem;">Linear Actuator</span>
+        <span id="arm-state" class="ready">READY</span>
+      </div>
+      <div class="arm-bar-wrap"><div class="arm-bar" id="arm-bar"></div></div>
+      <div class="arm-label-row">
+        <span>Last strike: <span id="stat-last-strike">Never</span></span>
+        <span id="arm-cooldown-label"></span>
+      </div>
+    </div>
+
+    <div class="section-title">Strike Log</div>
+    <div class="log-container">
+      <ul id="strike-log">
+        <li class="empty">No strikes yet…</li>
+      </ul>
+    </div>
+
+    <div class="section-title">Pest Alert Log</div>
+    <div class="log-container">
+      <ul id="pest-log">
+        <li class="empty">No pest alerts yet…</li>
+      </ul>
+    </div>
+
+    <div class="section-title">Rat Alert Log</div>
+    <div class="log-container">
+      <ul id="rat-log">
+        <li class="empty">No rat alerts yet…</li>
+      </ul>
+    </div>
+
+    <div class="section-title">Servo Motor</div>
+    <div class="control-panel">
+
+      <!-- Status row -->
+      <div class="servo-status-row">
+        <span style="font-size:0.78rem; color:var(--muted);">Status</span>
+        <span id="servo-badge" class="servo-badge ready">● READY</span>
+      </div>
+
+      <!-- Test button -->
+      <div class="control-row">
+        <button id="btn-servo-test" class="ctrl-btn test-servo" onclick="servoTest()">
+          🔧 Test Servo
+        </button>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">Manually trigger the servo test sequence: sweeps from 0° to 90°, holds for 2 seconds, then returns to 0°. Use this to verify the servo hardware is working correctly.</div>
+        </div>
+      </div>
+
+      <!-- Disengage button -->
+      <div class="control-row">
+        <button id="btn-servo-disengage" class="ctrl-btn disengage" onclick="servoToggleDisengage()">
+          🔌 Disengage Servo
+        </button>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">Disengage cuts the PWM signal so the servo relaxes and will not respond to weed detection. Use Engage to re-arm it. The servo returns to 0° when re-engaged.</div>
+        </div>
+      </div>
+
+      <div style="font-size:0.68rem; color:var(--muted); margin-top:2px;">
+        Servo strikes: <span id="servo-strike-count" style="font-family:'JetBrains Mono',monospace; color:var(--accent2);">0</span>
+      </div>
+
+    </div>
+
+    <div class="section-title">Detection Types</div>
+    <div class="control-panel">
+
+      <!-- Weed detection toggle -->
+      <div class="control-row">
+        <button id="btn-weed" class="ctrl-btn enabled-weed" onclick="toggleDetector('weed')">
+          🌿 Weed Detection: ON
+        </button>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">Enable or disable weed detection and arm strikes. When OFF the camera still runs but weeds are not detected and the arm will not fire.</div>
+        </div>
+      </div>
+
+      <!-- Pest detection toggle -->
+      <div class="control-row">
+        <button id="btn-pest" class="ctrl-btn enabled-pest" onclick="toggleDetector('pest')">
+          🐛 Pest &amp; Bird Detection: ON
+        </button>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">Enable or disable pest and bird detection. Detects insects (aphids, beetles, caterpillars, etc.) and birds that can damage crops. Uses the same ONNX model as weed detection.</div>
+        </div>
+      </div>
+
+      <!-- Rat detection toggle -->
+      <div class="control-row">
+        <button id="btn-rat" class="ctrl-btn enabled-rat" onclick="toggleDetector('rat')">
+          🐀 Rat &amp; Rodent Detection: ON
+        </button>
+        <div class="info-wrap">
+          <span class="info-icon">i</span>
+          <div class="tooltip">Enable or disable rat and rodent detection. In demo mode detects birds, cats and dogs as proxy triggers. In production mode uses a dedicated rat-trained model.</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- sidebar -->
+</div><!-- layout -->
+
+<script>
+  const statEls = {
+    detections:  document.getElementById("stat-detections"),
+    inZone:      document.getElementById("stat-in-zone"),
+    strikes:     document.getElementById("stat-strikes"),
+    lastStrike:  document.getElementById("stat-last-strike"),
+    uptime:      document.getElementById("uptime-display"),
+    armState:    document.getElementById("arm-state"),
+    armBar:      document.getElementById("arm-bar"),
+    armCooldown: document.getElementById("arm-cooldown-label"),
+    cardStrikes: document.getElementById("card-strikes"),
+    simBadge:    document.getElementById("sim-badge"),
+    feedLabel:   document.getElementById("feed-label"),
+    videoCorner: document.getElementById("video-corner"),
+    pests:       document.getElementById("stat-pests"),
+    lastPest:    document.getElementById("stat-last-pest"),
+    cardPests:   document.getElementById("card-pests"),
+    rats:        document.getElementById("stat-rats"),
+    lastRat:     document.getElementById("stat-last-rat"),
+    cardRats:    document.getElementById("card-rats"),
+  };
+
+  let prevStrikes = 0;
+  let prevPests = 0;
+  let prevRats = 0;
+  let strikeLog = [];
+  let pestLog = [];
+  let ratLog = [];
+  let lastFPS = performance.now();
+  let fps = 0;
+
+  // FPS estimation from video element
+  const img = document.getElementById("video-stream");
+  let frameCount = 0;
+  setInterval(() => {
+    const now = performance.now();
+    fps = Math.round(frameCount / ((now - lastFPS) / 1000));
+    frameCount = 0; lastFPS = now;
+    statEls.videoCorner.textContent = `fps: ${fps}`;
+  }, 2000);
+  img.addEventListener("load", () => frameCount++);
+
+  async function fetchStats() {
+    try {
+      const res = await fetch("/stats");
+      if (!res.ok) return;
+      const d = await res.json();
+
+      // Update numbers
+      statEls.detections.textContent = d.total_detections;
+      statEls.inZone.textContent     = d.weeds_in_zone;
+      statEls.strikes.textContent    = d.total_strikes;
+      statEls.lastStrike.textContent = d.last_strike;
+      statEls.uptime.textContent     = d.uptime_formatted;
+
+      // Pest stats
+      statEls.pests.textContent    = d.total_pest_detections;
+      statEls.lastPest.textContent = d.last_pest_alert;
+
+      // Rat stats
+      statEls.rats.textContent    = d.total_rat_detections;
+      statEls.lastRat.textContent = d.last_rat_alert;
+
+      // Sim mode badge
+      if (d.simulate) statEls.simBadge.style.display = "inline-flex";
+      if (d.simulate) statEls.feedLabel.textContent   = "🎮 SIMULATION FEED — 640×480";
+
+      // Strike log
+      if (d.total_strikes > prevStrikes) {
+        const n = d.total_strikes - prevStrikes;
+        for (let i = 0; i < n; i++) {
+          strikeLog.unshift(d.last_strike);
+          if (strikeLog.length > 30) strikeLog.pop();
+        }
+        prevStrikes = d.total_strikes;
+        renderLog();
+        statEls.cardStrikes.classList.add("danger-card");
+        setTimeout(() => statEls.cardStrikes.classList.remove("danger-card"), 1200);
+      }
+
+      // Pest alert flash + log
+      if (d.total_pest_detections > prevPests) {
+        const n = d.total_pest_detections - prevPests;
+        for (let i = 0; i < n; i++) {
+          pestLog.unshift(d.last_pest_alert);
+          if (pestLog.length > 30) pestLog.pop();
+        }
+        prevPests = d.total_pest_detections;
+        renderPestLog();
+        statEls.cardPests.classList.add("pest-card");
+        setTimeout(() => statEls.cardPests.classList.remove("pest-card"), 1200);
+      }
+
+      // Rat alert flash + log
+      if (d.total_rat_detections > prevRats) {
+        const n = d.total_rat_detections - prevRats;
+        for (let i = 0; i < n; i++) {
+          ratLog.unshift(d.last_rat_alert);
+          if (ratLog.length > 30) ratLog.pop();
+        }
+        prevRats = d.total_rat_detections;
+        renderRatLog();
+        statEls.cardRats.classList.add("rat-card");
+        setTimeout(() => statEls.cardRats.classList.remove("rat-card"), 1200);
+      }
+
+      // Arm state
+      statEls.armState.textContent = "READY";
+      statEls.armState.className = "ready";
+      statEls.armBar.style.width = "0%";
+
+    } catch(e) { /* ignore */ }
+  }
+
+  function renderLog() {
+    const ul = document.getElementById("strike-log");
+    ul.innerHTML = "";
+    if (strikeLog.length === 0) {
+      ul.innerHTML = '<li class="empty">No strikes yet…</li>';
+      return;
+    }
+    strikeLog.forEach((t, i) => {
+      const li = document.createElement("li");
+      li.textContent = `⚡ Strike @ ${t}${i === 0 ? " ← latest" : ""}`;
+      ul.appendChild(li);
+    });
+  }
+
+  function renderPestLog() {
+    const ul = document.getElementById("pest-log");
+    ul.innerHTML = "";
+    if (pestLog.length === 0) {
+      ul.innerHTML = '<li class="empty">No pest alerts yet…</li>';
+      return;
+    }
+    pestLog.forEach((t, i) => {
+      const li = document.createElement("li");
+      li.style.color = "var(--pest)";
+      li.textContent = `🐛 Pest @ ${t}${i === 0 ? " ← latest" : ""}`;
+      ul.appendChild(li);
+    });
+  }
+
+  function renderRatLog() {
+    const ul = document.getElementById("rat-log");
+    ul.innerHTML = "";
+    if (ratLog.length === 0) {
+      ul.innerHTML = '<li class="empty">No rat alerts yet…</li>';
+      return;
+    }
+    ratLog.forEach((t, i) => {
+      const li = document.createElement("li");
+      li.style.color = "var(--rat)";
+      li.textContent = `🐀 Rat @ ${t}${i === 0 ? " ← latest" : ""}`;
+      ul.appendChild(li);
+    });
+  }
+
+  // Poll every 1 second
+  fetchStats();
+  setInterval(fetchStats, 1000);
+
+  // ── System restart ────────────────────────────────────────
+  async function systemRestart() {
+    if (!confirm("Restart the robot service?\n\nThis will stop detection and the servo briefly. The page will reload automatically when the system is back online.")) return;
+    const btn = document.getElementById("btn-restart");
+    btn.disabled = true;
+    btn.textContent = "↺ Restarting…";
+    try {
+      await fetch("/system/restart", { method: "POST" });
+    } catch(e) { /* expected — server goes down */ }
+    // Poll /health until the server comes back, then reload
+    const poll = setInterval(async () => {
+      try {
+        const r = await fetch("/health");
+        if (r.ok) {
+          clearInterval(poll);
+          location.reload();
+        }
+      } catch(e) { /* still restarting */ }
+    }, 1500);
+  }
+
+  // ── Servo state ───────────────────────────────────────────
+  let servoDisengaged = false;
+
+  function _updateServoBadge(status) {
+    const badge = document.getElementById("servo-badge");
+    const testBtn = document.getElementById("btn-servo-test");
+    if (status.is_striking) {
+      badge.className = "servo-badge striking";
+      badge.textContent = "⚡ STRIKING";
+      testBtn.disabled = true;
+    } else if (status.is_disengaged) {
+      badge.className = "servo-badge disengaged";
+      badge.textContent = "○ DISENGAGED";
+      testBtn.disabled = true;
+    } else {
+      badge.className = "servo-badge ready";
+      badge.textContent = "● READY";
+      testBtn.disabled = false;
+    }
+    document.getElementById("servo-strike-count").textContent = status.total_strikes || 0;
+  }
+
+  async function servoTest() {
+    const btn = document.getElementById("btn-servo-test");
+    btn.disabled = true;
+    btn.textContent = "⏳ Running...";
+    await fetch("/servo/test", { method: "POST" });
+    // Poll until done
+    const poll = setInterval(async () => {
+      const r = await fetch("/servo/status");
+      const s = await r.json();
+      _updateServoBadge(s);
+      if (!s.is_striking) {
+        clearInterval(poll);
+        btn.textContent = "🔧 Test Servo";
+      }
+    }, 300);
+  }
+
+  async function servoToggleDisengage() {
+    servoDisengaged = !servoDisengaged;
+    const btn = document.getElementById("btn-servo-disengage");
+    btn.textContent = servoDisengaged ? "🔌 Engage Servo" : "🔌 Disengage Servo";
+    btn.className   = servoDisengaged ? "ctrl-btn engage" : "ctrl-btn disengage";
+    await fetch("/servo/disengage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ disengaged: servoDisengaged })
+    });
+  }
+
+  // Poll servo status every 500 ms for live badge updates
+  async function pollServo() {
+    try {
+      const r = await fetch("/servo/status");
+      if (!r.ok) return;
+      const s = await r.json();
+      _updateServoBadge(s);
+      // Sync disengage button state
+      if (s.is_disengaged !== servoDisengaged) {
+        servoDisengaged = s.is_disengaged;
+        const btn = document.getElementById("btn-servo-disengage");
+        btn.textContent = servoDisengaged ? "🔌 Engage Servo" : "🔌 Disengage Servo";
+        btn.className   = servoDisengaged ? "ctrl-btn engage" : "ctrl-btn disengage";
+      }
+    } catch(e) { /* ignore */ }
+  }
+  pollServo();
+  setInterval(pollServo, 500);
+
+  // ── Control state ─────────────────────────────────────────
+  let detectionPaused    = false;
+  let capturePaused      = false;
+  let detectorState = { weed: true, pest: true, rat: true };
+
+  const detectorCfg = {
+    weed: { enabledClass: "enabled-weed", icon: "🌿", label: "Weed Detection" },
+    pest: { enabledClass: "enabled-pest", icon: "🐛", label: "Pest & Bird Detection" },
+    rat:  { enabledClass: "enabled-rat",  icon: "🐀", label: "Rat & Rodent Detection" },
+  };
+
+  async function toggleDetector(type) {
+    const newState = !detectorState[type];
+    detectorState[type] = newState;
+    const cfg = detectorCfg[type];
+    const btn = document.getElementById("btn-" + type);
+    btn.className = "ctrl-btn " + (newState ? cfg.enabledClass : "disabled-det");
+    btn.textContent = cfg.icon + " " + cfg.label + ": " + (newState ? "ON" : "OFF");
+    await fetch("/control/" + type, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: newState })
+    });
+  }
+
+  async function toggleDetection() {
+    detectionPaused = !detectionPaused;
+    const btn = document.getElementById("btn-detection");
+    btn.textContent = detectionPaused ? "▶ Resume Detection" : "⏸ Pause Detection";
+    btn.className   = detectionPaused ? "ctrl-btn paused" : "ctrl-btn running";
+    await fetch("/control/detection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paused: detectionPaused })
+    });
+  }
+
+  async function toggleCapture() {
+    capturePaused = !capturePaused;
+    const btn = document.getElementById("btn-capture");
+    btn.textContent = capturePaused ? "▶ Resume Video" : "⏸ Pause Video";
+    btn.className   = capturePaused ? "ctrl-btn paused" : "ctrl-btn running";
+    await fetch("/control/capture", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paused: capturePaused })
+    });
+  }
+
+  function onDelayInput(val) {
+    const v = parseFloat(val);
+    document.getElementById("delay-value").textContent =
+      v === 0 ? "0.0 s (live)" : v.toFixed(1) + " s";
+  }
+
+  let delayDebounce = null;
+  async function applyDelay(val) {
+    clearTimeout(delayDebounce);
+    delayDebounce = setTimeout(async () => {
+      await fetch("/control/delay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seconds: parseFloat(val) })
+      });
+    }, 200);
+  }
+
+  // Sync control state on load
+  (async () => {
+    try {
+      const res = await fetch("/control/status");
+      if (!res.ok) return;
+      const s = await res.json();
+      detectionPaused = s.detection_paused;
+      capturePaused   = s.capture_paused;
+      const delay     = s.frame_delay || 0;
+
+      const btnD = document.getElementById("btn-detection");
+      btnD.textContent = detectionPaused ? "▶ Resume Detection" : "⏸ Pause Detection";
+      btnD.className   = detectionPaused ? "ctrl-btn paused" : "ctrl-btn running";
+
+      const btnC = document.getElementById("btn-capture");
+      btnC.textContent = capturePaused ? "▶ Resume Video" : "⏸ Pause Video";
+      btnC.className   = capturePaused ? "ctrl-btn paused" : "ctrl-btn running";
+
+      document.getElementById("delay-slider").value = delay;
+      onDelayInput(delay);
+
+      // Restore per-detector toggles
+      ["weed", "pest", "rat"].forEach(type => {
+        const key = type + "_detect_enabled";
+        if (key in s) {
+          detectorState[type] = s[key];
+          const cfg = detectorCfg[type];
+          const btn = document.getElementById("btn-" + type);
+          btn.className   = "ctrl-btn " + (s[key] ? cfg.enabledClass : "disabled-det");
+          btn.textContent = cfg.icon + " " + cfg.label + ": " + (s[key] ? "ON" : "OFF");
+        }
+      });
+    } catch(e) { /* ignore */ }
+  })();
+</script>
+</body>
+</html>
