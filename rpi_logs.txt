@@ -1,0 +1,50 @@
+Mar 08 14:26:38 weedfinder systemd[1]: weed-robot.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+Mar 08 14:26:38 weedfinder systemd[1]: weed-robot.service: Failed with result 'exit-code'.
+Mar 08 14:26:43 weedfinder systemd[1]: weed-robot.service: Scheduled restart job, restart counter is at 390.
+Mar 08 14:26:43 weedfinder systemd[1]: Stopped weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:26:43 weedfinder systemd[1]: Started weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:26:44 weedfinder python[7420]: usage: main.py [-h] [--simulate] [--no-dashboard] [--duration DURATION]
+Mar 08 14:26:44 weedfinder python[7420]:                [--show-window]
+Mar 08 14:26:44 weedfinder python[7420]: main.py: error: unrecognized arguments: --dashboard
+Mar 08 14:26:44 weedfinder systemd[1]: weed-robot.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+Mar 08 14:26:44 weedfinder systemd[1]: weed-robot.service: Failed with result 'exit-code'.
+Mar 08 14:26:49 weedfinder systemd[1]: weed-robot.service: Scheduled restart job, restart counter is at 391.
+Mar 08 14:26:49 weedfinder systemd[1]: Stopped weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:26:49 weedfinder systemd[1]: Started weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:26:50 weedfinder python[7427]: usage: main.py [-h] [--simulate] [--no-dashboard] [--duration DURATION]
+Mar 08 14:26:50 weedfinder python[7427]:                [--show-window]
+Mar 08 14:26:50 weedfinder python[7427]: main.py: error: unrecognized arguments: --dashboard
+Mar 08 14:26:50 weedfinder systemd[1]: weed-robot.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+Mar 08 14:26:50 weedfinder systemd[1]: weed-robot.service: Failed with result 'exit-code'.
+Mar 08 14:26:55 weedfinder systemd[1]: weed-robot.service: Scheduled restart job, restart counter is at 392.
+Mar 08 14:26:55 weedfinder systemd[1]: Stopped weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:26:55 weedfinder systemd[1]: Started weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:26:55 weedfinder python[7434]: usage: main.py [-h] [--simulate] [--no-dashboard] [--duration DURATION]
+Mar 08 14:26:55 weedfinder python[7434]:                [--show-window]
+Mar 08 14:26:55 weedfinder python[7434]: main.py: error: unrecognized arguments: --dashboard
+Mar 08 14:26:55 weedfinder systemd[1]: weed-robot.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+Mar 08 14:26:55 weedfinder systemd[1]: weed-robot.service: Failed with result 'exit-code'.
+Mar 08 14:27:01 weedfinder systemd[1]: weed-robot.service: Scheduled restart job, restart counter is at 393.
+Mar 08 14:27:01 weedfinder systemd[1]: Stopped weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:27:01 weedfinder systemd[1]: Started weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:27:01 weedfinder python[7441]: usage: main.py [-h] [--simulate] [--no-dashboard] [--duration DURATION]
+Mar 08 14:27:01 weedfinder python[7441]:                [--show-window]
+Mar 08 14:27:01 weedfinder python[7441]: main.py: error: unrecognized arguments: --dashboard
+Mar 08 14:27:01 weedfinder systemd[1]: weed-robot.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+Mar 08 14:27:01 weedfinder systemd[1]: weed-robot.service: Failed with result 'exit-code'.
+Mar 08 14:27:06 weedfinder systemd[1]: weed-robot.service: Scheduled restart job, restart counter is at 394.
+Mar 08 14:27:06 weedfinder systemd[1]: Stopped weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:27:06 weedfinder systemd[1]: Started weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:27:07 weedfinder python[7457]: usage: main.py [-h] [--simulate] [--no-dashboard] [--duration DURATION]
+Mar 08 14:27:07 weedfinder python[7457]:                [--show-window]
+Mar 08 14:27:07 weedfinder python[7457]: main.py: error: unrecognized arguments: --dashboard
+Mar 08 14:27:07 weedfinder systemd[1]: weed-robot.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+Mar 08 14:27:07 weedfinder systemd[1]: weed-robot.service: Failed with result 'exit-code'.
+Mar 08 14:27:12 weedfinder systemd[1]: weed-robot.service: Scheduled restart job, restart counter is at 395.
+Mar 08 14:27:12 weedfinder systemd[1]: Stopped weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:27:12 weedfinder systemd[1]: Started weed-robot.service - Weed Detection & Removal Robot.
+Mar 08 14:27:13 weedfinder python[7464]: usage: main.py [-h] [--simulate] [--no-dashboard] [--duration DURATION]
+Mar 08 14:27:13 weedfinder python[7464]:                [--show-window]
+Mar 08 14:27:13 weedfinder python[7464]: main.py: error: unrecognized arguments: --dashboard
+Mar 08 14:27:13 weedfinder systemd[1]: weed-robot.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+Mar 08 14:27:13 weedfinder systemd[1]: weed-robot.service: Failed with result 'exit-code'.

@@ -1,0 +1,14 @@
+[Unit]
+Description=Weed Detection Robot
+After=network.target
+
+[Service]
+Type=simple
+User=rpi
+WorkingDirectory=/home/rpi/weed-robot
+ExecStart=/home/rpi/weed-robot/.venv/bin/python /home/rpi/weed-robot/main.py --dashboard
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

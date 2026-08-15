@@ -1,0 +1,30 @@
+# ─────────────────────────────────────────────────────────
+# Raspberry Pi 4 Requirements — Weed Detection Robot
+# Install with:  pip install -r requirements_rpi.txt
+#
+# NOTE: PyTorch is NOT included here because PyTorch 2.x
+# requires AVX2 CPU instructions not available on RPi4 ARM.
+# We use ONNX Runtime instead for on-device inference.
+# ─────────────────────────────────────────────────────────
+
+# Computer Vision (ARM-optimised via piwheels)
+opencv-python-headless>=4.8.0
+
+# ONNX Inference (ARM64 compatible — replaces PyTorch on RPi)
+onnxruntime>=1.17.0
+
+# GPIO (Raspberry Pi only)
+RPi.GPIO>=0.7.1
+gpiozero>=2.0
+
+# Dashboard
+flask>=3.0.0
+
+# Utilities
+numpy>=1.24.0
+Pillow>=10.0.0
+pyserial>=3.5
+requests>=2.31.0
+
+# Testing
+pytest>=8.0.0
